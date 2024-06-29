@@ -1,61 +1,111 @@
-import { Fragment } from "react";
+import React, {useState} from "react";
 import "./App.css";
 
-function App() {
-  const list = [
-    {id: 1, text: "Перший елемент", link: "/first"},
-    {id: 2, text: "Другий елемент", link: '/second'},
-    {id: 3, text: "Третій елемент", link: '/last'},
-  ];
+const FIELD_NAME = {
+  [FIELD_NAME.NAME]: "",
+  [FIELD_NAME.EMAIL]: "",
+  [FIELD_NAME.PASSWORD]: "",
+};
 
- const handleLinkClick = () => {
-    return window.confirm('Вийти?');
-  }
+const initialValues = (values) => ({
+  [FIELD_NAME.NAME]: "",
+  [FIELD_NAME.EMAIL]: "",
+  [FIELD_NAME.PASSWORD]: "",
+  ...values,
+})
+
+function App() {
+  const [value, setValue] = useState(() => initialValues({color: "red"}));
+
+  const [userList, setUserList] = useState([]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    setUserList([...userList, value]);
+
+    setValue(initialValues());
+  };
+
+  const handleChange = (e) => {
+    setValue({
+      ...value,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  console.log(value);
 
   return (
     <div className="App">
-      <header onClickCapture={(e) => {
-        alert('Header');
-        // e.stopPropagation()
-      }} className="App-header">
-          {list.map((item) => (
-            <Fragment key={item.id}>
-              <Link {...item} />
-            </Fragment>
-          ))}
-          <Link text="My link" link="www.google.com" getConfirm={handleLinkClick}/>
-          <Input />
-      </header>
+      <header className="App-header">
+        <form onSubmit={handleSubmit}>
+          <div>
+            <input
+            type="text"
+            placeholder="Ім'я"
+            name={FIELD_NAME.NAME}
+            value={value[FIELD_NAME.NAME]}
+            onChange={handleChange}
+            />
+          </div>
+          <div>
+            <input 
+            type="email"
+            placeholder="Email"
+            name={FIELD_NAME.EMAIL}
+            value={value[FIELD_NAME.EMAIL]}
+            onChange={handleChange}
+            />
+          </div>
+          <div>
+            <input 
+              type="password"
+              placeholder="Пароль"
+              name={FIELD_NAME.PASSWORD}
+              value={value[FIELD_NAME.PASSWORD]}
+              onChange={handleChange}
+            />
+          </div>
+          <button type="submit">Відправити</button>
+        </form>
+
+          {userList.length > 0 && (
+            <ul>
+              {userList.map((user, index)=> {
+                <React.Fragment key={user.name}>
+                  <li><User {...user} show={index === 0}/></li>
+                </React.Fragment>
+              })}
+            </ul>
+          )}
+        </header>
     </div>
   );
 }
 
-function Link({text, link, getConfirm, onClick}) {
-  const handleClick = (e) => {
-    console.log(e.target);
+function User({name, email, password, show: initialShow}) {
+  const [show, setShow] = useState(initialShow);
 
-    e.preventDefault();
-
-    const result = getConfirm();
-
-    if(result) {
-        window.location.assign(link);
-    } 
+  const toggleDetails = () => {
+    setShow(!show);
   };
 
-  return(
-    <a href={link} className="App-link" onClick={onClick || handleClick}>
-      {text}
-    </a>
-  );
-}
+  console.log("render", name);
 
-function Input() {
-  const handleInput = (e) => {
-    console.log(e.target.value);
-  };
+  const isShow = initialShow && show
 
-  return <input onChange={handleInput}/>;
+  return (
+    <React.Fragment>
+      <div onClick={toggleDetails}>{name}</div>
+      {isShow && (
+        <ul>
+          <li>Email: {email}</li>
+          <li>Password: {password}</li>
+        </ul>
+      )}
+    </React.Fragment>
+  )
 }
 
 export default App;
