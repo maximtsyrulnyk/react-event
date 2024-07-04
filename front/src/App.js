@@ -4,7 +4,7 @@ import PostList from "./container/post-list";
 function App() {
   return (
     <Page>
-      <PageList />
+      <PostList />
     </Page>
   );
 }

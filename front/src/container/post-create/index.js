@@ -1,4 +1,4 @@
-import { useState, useReducer } from "react";
+import { useState, useReducer, memo } from "react";
 
 import "./index.css";
 
@@ -13,7 +13,7 @@ import {
     REQUEST_ACTION_TYPE
 } from "../../util/request";
 
-export default function Container({
+function Container({
     onCreate,
     placeholder,
     button,
@@ -21,9 +21,7 @@ export default function Container({
 }) {
     const [state, dispatch] = useReducer(requestReducer, requestInitialState);
 
-    const handleSubmit = (value) => {
-        return sendData({value});
-    };
+
 
     const sendData = async(dataToSend) => {
         dispatch({type: REQUEST_ACTION_TYPE.PROGRESS});
@@ -57,6 +55,12 @@ export default function Container({
             postId: id,
         });
 
+        console.log("render")
+
+        const handleSubmit = (value) => {
+            return sendData({value});
+        };
+
         return (
             <Grid>
                 <FieldForm
@@ -71,3 +75,7 @@ export default function Container({
             </Grid>
         );
 }
+
+export default memo(Container, (prev, next) => {
+    return true;
+});
