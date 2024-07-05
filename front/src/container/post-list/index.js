@@ -1,4 +1,4 @@
-import { useState, Fragment, useEffect, useReducer } from "react";
+import { useState, Fragment, useEffect, useReducer, Suspense, lazy } from "react";
 
 import Title from "../../component/title";
 import Grid from "../../component/grid";
@@ -15,6 +15,8 @@ import {
     requestReducer,
     REQUEST_ACTION_TYPE,
 } from "../../util/request";
+
+const PostItem = lazy(() => import("../post-item"));
 
 export default function Container() {
     const [state, dispatch] = useReducer(requestReducer, requestInitialState);
@@ -43,6 +45,69 @@ export default function Container() {
         }
     };
 
-    const convertData = (raw) => ({})
+    const convertData = (raw) => ({
+        list: raw.list.reverse().map(({id, username, text, date}) => ({
+            id,
+            username,
+            text,
+            date: getDate(date),
+        })),
+
+        isEmpty: raw.list.length === 0,
+    });
+
+    useEffect(() => {
+        getData();
+    },[]);
+
+    return (
+        <Grid>
+            <Box>
+                <Grid>
+                    <Title>Home</Title>
+                    <PostCreate 
+                    onCreate={getData}
+                    placeholder="What is happening?!"
+                    button="Post"
+                    />  
+                </Grid>
+            </Box>
+            {state.status === REQUEST_ACTION_TYPE.PROGRESS && (
+                <Fragment>
+                    <Box>
+                        <Skeleton />
+                    </Box>
+                    <Box >
+                        <Skeleton />
+                    </Box>
+                </Fragment>
+            )}
+            {state.status === REQUEST_ACTION_TYPE.ERROR && (
+                <Alert status={state.status} message={state.message}/>
+            )}
+
+            {state.status === REQUEST_ACTION_TYPE.SUCCESS && (
+                <Fragment>
+                    {state.data.isEmpty ? (
+                        <Alert message="Список користувачів пустий" />
+                    ) : (
+                        state.data.list.map((item) => (
+                            <Fragment key={item.id}>
+                                <Suspense
+                                    fallback={
+                                        <Box>
+                                            <Skeleton />
+                                        </Box>
+                                    }
+                                >
+                                    <PostItem {...item} />
+                                </Suspense>
+                            </Fragment>
+                        ))
+                    )}
+                </Fragment>
+            )}
+        </Grid>
+    )
 }
 
